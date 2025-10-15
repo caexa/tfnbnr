@@ -1,0 +1,292 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+  <meta charset="UTF-8">\
+  <title>StudySpark \'96 ignite your study session</title>\
+  <meta name="viewport" content="width=device-width, initial-scale=1">\
+  <style>\
+    :root\{\
+      --accent:#f43f5e; --accent-light:#fb7185;\
+      --bg:#ffffff; --card:#fafafa; --text:#111827; --muted:#6b7280;\
+      --radius:12px; --shadow:0 4px 12px rgba(0,0,0,.06);\
+    \}\
+    body.dark\{--bg:#111827;--card:#1f2937;--text:#f9fafb;--muted:#9ca3af;\}\
+    *\{box-sizing:border-box;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;\}\
+    body\{background:var(--bg);color:var(--text);line-height:1.55;padding:0 .75rem 2rem;transition:background .3s,color .3s\}\
+    header\{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0 .5rem\}\
+    h1\{font-size:1.85rem;font-weight:800;letter-spacing:-.5px\}\
+    .toggle\{appearance:none;width:44px;height:24px;background:var(--muted);border-radius:999px;position:relative;cursor:pointer\}\
+    .toggle::after\{content:"";position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.3s\}\
+    .toggle:checked\{background:var(--accent)\}\
+    .toggle:checked::after\{transform:translateX(20px)\}\
+    nav\{display:flex;gap:.5rem;margin:.75rem 0 1.5rem;flex-wrap:wrap\}\
+    nav button\{flex:1 1 120px;padding:.55rem;border:none;border-radius:var(--radius);background:var(--card);color:var(--text);font-weight:600;cursor:pointer;box-shadow:var(--shadow);transition:.2s\}\
+    nav button.active\{background:var(--accent);color:#fff\}\
+    main\{max-width:900px;margin:0 auto\}\
+    .view\{display:none\}\
+    .view.active\{display:block\}\
+    section\{background:var(--card);border-radius:var(--radius);padding:1.25rem 1.5rem 1.5rem;box-shadow:var(--shadow);margin-bottom:1.25rem\}\
+    label\{font-size:.8rem;color:var(--muted);display:block;margin-bottom:.25rem\}\
+    select,input\{width:100%;padding:.55rem .65rem;border:1px solid #d1d5db;border-radius:var(--radius);font-size:.95rem;margin-bottom:.9rem\}\
+    button.cta\{width:100%;padding:.7rem;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:.2s\}\
+    button.cta:hover\{background:var(--accent-light)\}\
+    .badge\{display:inline-block;background:var(--accent);color:#fff;font-size:.7rem;padding:.25rem .5rem;border-radius:999px;margin-top:.35rem\}\
+    .leader-item\{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #e5e7eb\}\
+    .leader-item:last-child\{border:none\}\
+    .progress-bar\{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;margin-top:.4rem\}\
+    .progress-bar div\{height:100%;background:var(--accent);width:0%;transition:width .4s\}\
+    .room\{display:flex;gap:1rem;align-items:center\}\
+    .room>div\{flex:1\}\
+    .confetti\{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999\}\
+  </style>\
+</head>\
+<body>\
+  <header>\
+    <h1>StudySpark</h1>\
+    <div>\
+      <label><input type="checkbox" class="toggle" id="darkToggle"> Dark</label>\
+    </div>\
+  </header>\
+\
+  <nav>\
+    <button class="active" data-view="solo">Solo Mode</button>\
+    <button data-view="compete">Compete 1v1</button>\
+    <button data-view="leader">Leaderboards</button>\
+    <button data-view="profile">Profile</button>\
+  </nav>\
+\
+  <main>\
+    <!-- ----------  SOLO MODE  ---------- -->\
+    <div class="view active" id="solo">\
+      <section>\
+        <h2>Solo Focus Timer</h2>\
+        <label>Course / level</label>\
+        <select id="soloCourse"></select>\
+        <button class="cta" id="startSolo">Start 25-min focus</button>\
+        <div class="progress-bar" style="margin-top:1rem"><div id="soloProgress"></div></div>\
+        <p style="text-align:center;margin-top:.5rem;font-size:1.5rem;font-weight:700" id="soloTimer">25:00</p>\
+      </section>\
+    </div>\
+\
+    <!-- ----------  1v1 COMPETE  ---------- -->\
+    <div class="view" id="compete">\
+      <section>\
+        <h2>Find a live opponent</h2>\
+        <label>Course / level</label>\
+        <select id="compCourse"></select>\
+        <button class="cta" id="findMatch">Find match</button>\
+        <div id="matchArea" style="margin-top:1rem"></div>\
+      </section>\
+    </div>\
+\
+    <!-- ----------  LEADERBOARDS  ---------- -->\
+    <div class="view" id="leader">\
+      <section>\
+        <h2>Solo Leaderboard <span class="badge"> resets midnight UTC</span></h2>\
+        <div id="soloLeader"></div>\
+      </section>\
+      <section>\
+        <h2>Competitive Wins</h2>\
+        <div id="compLeader"></div>\
+      </section>\
+    </div>\
+\
+    <!-- ----------  PROFILE  ---------- -->\
+    <div class="view" id="profile">\
+      <section>\
+        <h2>Your Spark Card</h2>\
+        <p><strong id="cardName">\'97</strong></p>\
+        <p>Total focus minutes: <b id="cardMin">0</b></p>\
+        <p>Competitive wins: <b id="cardWins">0</b></p>\
+        <p>Level: <b id="cardLvl">Rookie</b></p>\
+        <button class="cta" id="resetProf">Reset my data</button>\
+      </section>\
+    </div>\
+  </main>\
+\
+  <canvas class="confetti" id="confetti"></canvas>\
+\
+  <script>\
+    /* =======  UTILS  ======= */\
+    const $ = q => document.querySelector(q);\
+    const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));\
+    const courses = [\
+      /* Middle */\
+      "Middle 6","Middle 7","Middle 8",\
+      /* HS regular */\
+      "HS Alg 1","HS Geometry","HS Alg 2","HS Pre-Calc","HS Calc AB","HS Calc BC","HS Statistics",\
+      /* HS honors */\
+      "Honors Geometry","Honors Alg 2","Honors Pre-Calc","Honors Calc AB","Honors Calc BC",\
+      /* AP */\
+      "AP Calc AB","AP Calc BC","AP Statistics","AP Physics 1","AP Physics 2","AP Physics C","AP Chem","AP Bio","AP Enviro","AP US History","AP World History","AP Euro","AP Gov","AP Micro","AP Macro","AP CS A","AP CSP",\
+      /* IB */\
+      "IB SL Math","IB HL Math","IB SL Physics","IB HL Physics","IB SL Chem","IB HL Chem","IB SL Bio","IB HL Bio",\
+      /* College + Grad */\
+      "College 1st","College 2nd","College 3rd","College 4th","Graduate"\
+    ];\
+    const lvlNames = ["Rookie","Spark","Fire","Blaze","Inferno","Supernova"];\
+    function lvl(min)\{ return min<60?0:min<180?1:min<480?2:min<1200?3:min<2400?4:5; \}\
+\
+    /* =======  THEME  ======= */\
+    $('#darkToggle').addEventListener('change',e=>\{\
+      document.body.classList.toggle('dark',e.target.checked);\
+      storage('dark',e.target.checked);\
+    \});\
+    if(storage('dark'))\{document.body.classList.add('dark'); $('#darkToggle').checked=true;\}\
+\
+    /* =======  NAV  ======= */\
+    document.querySelectorAll('nav button').forEach(btn=>\{\
+      btn.addEventListener('click',()=>\{\
+        document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));\
+        document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));\
+        btn.classList.add('active');\
+        $(`#$\{btn.dataset.view\}`).classList.add('active');\
+        if(btn.dataset.view==='leader') renderLeaders();\
+        if(btn.dataset.view==='profile') renderProfile();\
+      \});\
+    \});\
+\
+    /* =======  POPULATE SELECTS  ======= */\
+    [$('#soloCourse'),$('#compCourse')].forEach(sel=>\{\
+      courses.forEach(c=>sel.innerHTML+=`<option>$\{c\}</option>`);\
+    \});\
+\
+    /* =======  SOLO TIMER  ======= */\
+    let soloInterval, soloStart, soloSecs=25*60;\
+    $('#startSolo').addEventListener('click',()=>\{\
+      if(soloInterval)return;\
+      soloStart=Date.now();\
+      soloSecs=25*60;\
+      $('#startSolo').disabled=true;\
+      soloInterval = setInterval(()=>\{\
+        soloSecs--;\
+        const m=String(Math.floor(soloSecs/60)).padStart(2,0), s=String(soloSecs%60).padStart(2,0);\
+        $('#soloTimer').textContent=`$\{m\}:$\{s\}`;\
+        $('#soloProgress').style.width=`$\{(1-soloSecs/(25*60))*100\}%`;\
+        if(soloSecs<=0)\{\
+          clearInterval(soloInterval); soloInterval=null;\
+          $('#startSolo').disabled=false;\
+          award($('#soloCourse').value,25);\
+          confetti();\
+        \}\
+      \},1000);\
+    \});\
+\
+    /* =======  1v1 MATCH  ======= */\
+    let rival=null, rivalBar=0, myBar=0, compInterval;\
+    $('#findMatch').addEventListener('click',async()=>\{\
+      $('#matchArea').innerHTML='<p>Matching\'85</p>';\
+      // fake 2-second matchmaking\
+      await new Promise(r=>setTimeout(r,1500));\
+      rival = \{id:'bot'+Math.random(),name:'Anonymous \uc0\u55357 \u56613 ',course:$('#compCourse').value\};\
+      $('#matchArea').innerHTML=`\
+        <div class="room">\
+          <div>\
+            <p><strong>You</strong></p>\
+            <div class="progress-bar"><div id="myBar"></div></div>\
+          </div>\
+          <div>\
+            <p><strong>$\{rival.name\}</strong></p>\
+            <div class="progress-bar"><div id="rivalBar"></div></div>\
+          </div>\
+        </div>\
+        <button class="cta" id="startComp">Start 10-min battle</button>`;\
+      $('#startComp').onclick=startBattle;\
+    \});\
+    function startBattle()\{\
+      let secs=10*60;\
+      compInterval=setInterval(()=>\{\
+        secs--;\
+        myBar+=Math.random()*2.2; rivalBar+=Math.random()*2;\
+        $('#myBar').style.width=`$\{Math.min(myBar,100)\}%`;\
+        $('#rivalBar').style.width=`$\{Math.min(rivalBar,100)\}%`;\
+        if(myBar>=100||rivalBar>=100||secs<=0)\{\
+          clearInterval(compInterval);\
+          const won=myBar>=rivalBar;\
+          alert(won?'You won! +50 pts':'Rival edged you out. +10 pts');\
+          award($('#compCourse').value, won?50:10);\
+          storage('wins', (storage('wins')||0)+(won?1:0));\
+          $('#matchArea').innerHTML='';\
+          myBar=0; rivalBar=0;\
+        \}\
+      \},1000);\
+    \}\
+\
+    /* =======  POINTS / LEVELS  ======= */\
+    function award(course,pts)\{\
+      let today=new Date().toISOString().slice(0,10);\
+      let board = storage('leaderboard')||\{\};\
+      let me = storage('user')||\{name:'Anonymous'\};\
+      if(!board[today])board[today]=\{\};\
+      if(!board[today][me.name])board[today][me.name]=0;\
+      board[today][me.name]+=pts;\
+      storage('leaderboard',board);\
+      storage('totalMin', (storage('totalMin')||0)+pts);\
+      renderProfile();\
+    \}\
+\
+    /* =======  LEADERBOARDS  ======= */\
+    function renderLeaders()\{\
+      const today=new Date().toISOString().slice(0,10);\
+      const board=storage('leaderboard')||\{\};\
+      const solo=board[today]||\{\};\
+      const entries=Object.entries(solo).sort((a,b)=>b[1]-a[1]).slice(0,10);\
+      $('#soloLeader').innerHTML='';\
+      entries.forEach(([n,p],i)=>\{\
+        $('#soloLeader').innerHTML+=`<div class="leader-item">$\{i+1\}. $\{n\} <span>$\{p\} pts</span></div>`;\
+      \});\
+      if(!entries.length)$('#soloLeader').innerHTML='<div class="leader-item">No scores yet today.</div>';\
+\
+      const wins=\{\}; let all=JSON.parse(localStorage.getItem('buddies')||'[]');\
+      // crude win count\
+      all.forEach(u=>\{if(u.wins) wins[u.name]=(wins[u.name]||0)+u.wins;\});\
+      const wEntries=Object.entries(wins).sort((a,b)=>b[1]-a[1]).slice(0,10);\
+      $('#compLeader').innerHTML='';\
+      wEntries.forEach(([n,c])=>\{\
+        $('#compLeader').innerHTML+=`<div class="leader-item">$\{n\} <span>$\{c\} wins</span></div>`;\
+      \});\
+      if(!wEntries.length)$('#compLeader').innerHTML='<div class="leader-item">No competitive wins yet.</div>';\
+    \}\
+\
+    /* =======  PROFILE  ======= */\
+    function renderProfile()\{\
+      const n=prompt('Enter a nickname (shown on boards):',storage('user')?.name||'');\
+      if(n&&n.trim())storage('user',\{name:n.trim()\});\
+      const u=storage('user')||\{name:'Anonymous'\};\
+      $('#cardName').textContent=u.name;\
+      const min=storage('totalMin')||0;\
+      $('#cardMin').textContent=min;\
+      $('#cardWins').textContent=storage('wins')||0;\
+      $('#cardLvl').textContent=lvlNames[lvl(min)];\
+    \}\
+    $('#resetProf').onclick=()=>\{if(confirm('Erase ALL your data?'))\{localStorage.clear();location.reload();\}\};\
+\
+    /* =======  CONFETTI  ======= */\
+    function confetti()\{\
+      const canvas=$('#confetti'), ctx=canvas.getContext('2d'), W=innerWidth, H=innerHeight;\
+      canvas.width=W; canvas.height=H;\
+      const pieces=[], colors=['#f43f5e','#ec4899','#8b5cf6','#3b82f6'];\
+      for(let i=0;i<150;i++) pieces.push(\{x:W*Math.random(),y:H*Math.random(),r:Math.random()*4+2,color:colors[Math.floor(Math.random()*colors.length)],vy:Math.random()*3+2\});\
+      function draw()\{\
+        ctx.clearRect(0,0,W,H);\
+        pieces.forEach(p=>\{p.y+=p.vy; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();\});\
+        if(pieces[0].y<H+20) requestAnimationFrame(draw); else ctx.clearRect(0,0,W,H);\
+      \}\
+      draw();\
+    \}\
+\
+    /* midnight reset check */\
+    if(storage('lastReset')!==new Date().toISOString().slice(0,10))\{\
+      storage('leaderboard',\{\});\
+      storage('lastReset',new Date().toISOString().slice(0,10));\
+    \}\
+  </script>\
+</body>\
+</html>}
