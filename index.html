@@ -33,8 +33,6 @@
     .leader-item{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #e5e7eb}
     .leader-item:last-child{border:none}
     #authSection{text-align:center;margin-bottom:1rem}
-    /* Optional helper if you use hidden class anywhere */
-    .hidden{display:none !important;}
   </style>
 </head>
 <body>
@@ -45,7 +43,7 @@
     </div>
   </header>
 
-  <!-- AUTH (kept) -->
+  <!-- AUTH (still visible) -->
   <div id="authSection">
     <button class="cta" id="googleBtn">Sign in with Google</button>
     <button class="cta" id="mailBtn">Sign in with e-mail link</button>
@@ -53,17 +51,16 @@
     <button class="cta hidden" id="outBtn">Sign out</button>
   </div>
 
-  <!-- NAV (kept; starts hidden if your JS shows it after auth) -->
-  <nav id="nav" class="hidden">
+  <!-- 🔓 UNHIDDEN nav + main -->
+  <nav id="nav">
     <button class="active" data-view="solo">Solo</button>
     <button data-view="compete">1-v-1</button>
     <button data-view="leader">Leaders</button>
     <button data-view="profile">Profile</button>
   </nav>
 
-  <!-- MAIN (kept; starts hidden if your JS shows it after auth) -->
-  <main id="main" class="hidden">
-    <!-- Solo -->
+  <main id="main">
+    <!-- solo -->
     <div class="view active" id="solo">
       <section>
         <h2>Solo Focus Timer</h2>
@@ -117,117 +114,91 @@
     </div>
   </main>
 
-  <!-- Your app JS (make sure this path is correct on GitHub Pages!) -->
+  <!-- Your Firebase/Auth file if you use it -->
   <script type="module" src="tfnbnr.js"></script>
 
-  <!-- Focus Timer logic -->
+  <!-- Timer logic -->
   <script type="module">
-  const $ = (sel) => document.querySelector(sel);
+  const $ = (s) => document.querySelector(s);
+  const startBtn = $("#startSolo"), resetBtn = $("#resetSolo"),
+        minIn = $("#soloMinutes"), secIn = $("#soloSeconds"),
+        timerTxt = $("#soloTimer"), bar = $("#soloProgress");
 
-  const startBtn = $("#startSolo");
-  const resetBtn = $("#resetSolo");
-  const minutesInput = $("#soloMinutes");
-  const secondsInput = $("#soloSeconds");
-  const timerText = $("#soloTimer");
-  const progressFill = $("#soloProgress");
+  let state="idle", startTime=0, elapsed=0, duration=25*60*1000, raf=null;
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,Number.isFinite(v)?v:0));
+  const fmt=(ms)=>{const s=Math.max(0,Math.ceil(ms/1000));
+    const m=Math.floor(s/60).toString().padStart(2,"0");
+    const ss=(s%60).toString().padStart(2,"0");return `${m}:${ss}`};
 
-  let timerState = "idle"; // idle | running | paused
-  let startEpoch = 0;
-  let elapsed = 0;
-  let duration = 25 * 60 * 1000; // default 25:00
-  let rafId = null;
-
-  const clamp = (v, min, max) => Math.max(min, Math.min(max, Number.isFinite(v) ? v : 0));
-  const fmt = (tMs) => {
-    const s = Math.max(0, Math.ceil(tMs / 1000));
-    const m = Math.floor(s / 60).toString().padStart(2, "0");
-    const ss = (s % 60).toString().padStart(2, "0");
-    return `${m}:${ss}`;
-  };
-
-  function readInputs() {
-    const mins = clamp(Number(minutesInput?.value), 0, 999);
-    let secs = clamp(Number(secondsInput?.value), 0, 59);
-    if (mins === 0 && secs === 0) secs = 1; // avoid 0:00
-    if (minutesInput) minutesInput.value = String(mins);
-    if (secondsInput) secondsInput.value = String(secs);
-    return { mins, secs };
+  function readInputs(){
+    const m=clamp(+minIn.value,0,999);
+    let s=clamp(+secIn.value,0,59);
+    if(m===0&&s===0)s=1;
+    minIn.value=m; secIn.value=s;
+    return {m,s};
   }
 
-  function setDurationFromInput() {
-    const { mins, secs } = readInputs();
-    duration = (mins * 60 + secs) * 1000;
-    timerText.textContent = fmt(duration);
-    progressFill.style.width = "0%";
+  function setDuration(){
+    const {m,s}=readInputs();
+    duration=(m*60+s)*1000;
+    timerTxt.textContent=fmt(duration);
+    bar.style.width="0%";
   }
 
-  function updateUI(remaining) {
-    const pct = 100 - Math.min(100, (remaining / duration) * 100);
-    progressFill.style.width = `${pct}%`;
-    timerText.textContent = fmt(remaining);
+  function update(rem){
+    const pct=100-Math.min(100,(rem/duration)*100);
+    bar.style.width=`${pct}%`;
+    timerTxt.textContent=fmt(rem);
   }
 
-  function tick() {
-    const now = Date.now();
-    const running = now - startEpoch;
-    const total = elapsed + running;
-    const remain = Math.max(0, duration - total);
-    updateUI(remain);
-
-    if (remain <= 0) {
-      cancelAnimationFrame(rafId); rafId = null;
-      timerState = "idle"; elapsed = 0;
-      startBtn.textContent = "Start focus";
-      minutesInput.disabled = secondsInput.disabled = false;
-      progressFill.style.width = "100%";
-      timerText.textContent = "00:00";
-      if (navigator.vibrate) navigator.vibrate(200);
+  function tick(){
+    const now=Date.now(), run=now-startTime;
+    const total=elapsed+run, rem=Math.max(0,duration-total);
+    update(rem);
+    if(rem<=0){
+      cancelAnimationFrame(raf); raf=null; state="idle"; elapsed=0;
+      startBtn.textContent="Start focus";
+      minIn.disabled=secIn.disabled=false;
+      bar.style.width="100%"; timerTxt.textContent="00:00";
+      if(navigator.vibrate) navigator.vibrate(200);
       alert("Focus session complete!");
       return;
     }
-    rafId = requestAnimationFrame(tick);
+    raf=requestAnimationFrame(tick);
   }
 
-  function start() {
-    if (timerState === "running") return;
-    if (timerState === "idle") { setDurationFromInput(); elapsed = 0; progressFill.style.width = "0%"; }
-    startEpoch = Date.now();
-    timerState = "running";
-    startBtn.textContent = "Pause";
-    minutesInput.disabled = secondsInput.disabled = true;
-    rafId = requestAnimationFrame(tick);
+  function start(){
+    if(state==="running")return;
+    if(state==="idle"){setDuration();elapsed=0;bar.style.width="0%";}
+    startTime=Date.now(); state="running";
+    startBtn.textContent="Pause";
+    minIn.disabled=secIn.disabled=true;
+    raf=requestAnimationFrame(tick);
   }
 
-  function pause() {
-    if (timerState !== "running") return;
-    cancelAnimationFrame(rafId);
-    rafId = null;
-    elapsed += Date.now() - startEpoch;
-    timerState = "paused";
-    startBtn.textContent = "Resume";
+  function pause(){
+    if(state!=="running")return;
+    cancelAnimationFrame(raf); raf=null;
+    elapsed+=Date.now()-startTime;
+    state="paused"; startBtn.textContent="Resume";
   }
 
-  // Reset: stop, restore inputs/label, DO NOT auto-start
-  function reset() {
-    cancelAnimationFrame(rafId); rafId = null;
-    timerState = "idle"; elapsed = 0;
-    minutesInput.disabled = secondsInput.disabled = false;
-    setDurationFromInput();
-    startBtn.textContent = "Start focus";
-    progressFill.style.width = "0%";
+  function reset(){
+    cancelAnimationFrame(raf); raf=null;
+    state="idle"; elapsed=0;
+    minIn.disabled=secIn.disabled=false;
+    setDuration();
+    startBtn.textContent="Start focus";
+    bar.style.width="0%";
   }
 
-  // Events
-  startBtn?.addEventListener("click", () => {
-    if (timerState === "idle" || timerState === "paused") start();
-    else if (timerState === "running") pause();
-  });
-  resetBtn?.addEventListener("click", reset);
-  minutesInput?.addEventListener("change", setDurationFromInput);
-  secondsInput?.addEventListener("change", setDurationFromInput);
-
-  // Init
-  setDurationFromInput();
+  startBtn.addEventListener("click",()=>(
+    state==="idle"||state==="paused"?start():pause()
+  ));
+  resetBtn.addEventListener("click",reset);
+  minIn.addEventListener("change",setDuration);
+  secIn.addEventListener("change",setDuration);
+  setDuration();
   </script>
 </body>
 </html>
