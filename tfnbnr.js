@@ -2,13 +2,15 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getAuth, signInWithPopup, GoogleAuthProvider, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR-KEY",
-  authDomain: "YOUR-PROJECT.firebaseapp.com",
-  projectId: "YOUR-PROJECT",
-  storageBucket: "YOUR-PROJECT.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "YYYY"
+  apiKey: "AIzaSyB_MAqIa_ruR-rQ7bZotBZGvW07qEfXqpI",
+  authDomain: "tfnbnr.firebaseapp.com",
+  projectId: "tfnbnr",
+  storageBucket: "tfnbnr.firebasestorage.app",
+  messagingSenderId: "485240329901",
+  appId: "1:485240329901:web:58b8fc9711f2d65ff1d824",
+  measurementId: "G-20J8FEY7XG"
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
