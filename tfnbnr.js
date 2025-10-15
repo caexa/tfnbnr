@@ -1,204 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>tfnbnr – study together</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:,">
-  <style>
-    :root{--accent:#f43f5e;--accent-light:#fb7185;--bg:#ffffff;--card:#fafafa;--text:#111827;--muted:#6b7280;--radius:12px;--shadow:0 4px 12px rgba(0,0,0,.06);}
-    body.dark{--bg:#111827;--card:#1f2937;--text:#f9fafb;--muted:#9ca3af;}
-    *{box-sizing:border-box;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-    body{background:var(--bg);color:var(--text);line-height:1.55;padding:0 .75rem 2rem;transition:background .3s,color .3s}
-    header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0 .5rem}
-    h1{font-size:1.85rem;font-weight:800;letter-spacing:-.5px}
-    .toggle{appearance:none;width:44px;height:24px;background:var(--muted);border-radius:999px;position:relative;cursor:pointer}
-    .toggle::after{content:"";position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.3s}
-    .toggle:checked{background:var(--accent)}.toggle:checked::after{transform:translateX(20px)}
-    nav{display:flex;gap:.5rem;margin:.75rem 0 1.5rem;flex-wrap:wrap}
-    nav button{flex:1 1 120px;padding:.55rem;border:none;border-radius:var(--radius);background:var(--card);color:var(--text);font-weight:600;cursor:pointer;box-shadow:var(--shadow);transition:.2s}
-    nav button.active{background:var(--accent);color:#fff}
-    main{max-width:900px;margin:0 auto}
-    .view{display:none}.view.active{display:block}
-    section{background:var(--card);border-radius:var(--radius);padding:1.25rem 1.5rem 1.5rem;box-shadow:var(--shadow);margin-bottom:1.25rem}
-    label{font-size:.8rem;color:var(--muted);display:block;margin-bottom:.25rem}
-    select,input{width:100%;padding:.55rem .65rem;border:1px solid #d1d5db;border-radius:var(--radius);font-size:.95rem;margin-bottom:.9rem}
-    .row{display:flex;gap:.5rem}
-    .row .field{flex:1}
-    button.cta{width:100%;padding:.7rem;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:.2s}
-    button.cta:hover{background:var(--accent-light)}
-    .progress-bar{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;margin-top:.4rem}
-    .progress-bar div{height:100%;background:var(--accent);width:0%;transition:width .4s}
-    .room{display:flex;gap:1rem;align-items:center}.room>div{flex:1}
-    .leader-item{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #e5e7eb}
-    .leader-item:last-child{border:none}
-    #authSection{text-align:center;margin-bottom:1rem}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>tfnbnr</h1>
-    <div>
-      <label><input type="checkbox" class="toggle" id="darkToggle"> Dark</label>
-    </div>
-  </header>
+/* =====  FIREBASE CONFIG  ===== */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
-  <!-- AUTH (still visible) -->
-  <div id="authSection">
-    <button class="cta" id="googleBtn">Sign in with Google</button>
-    <button class="cta" id="mailBtn">Sign in with e-mail link</button>
-    <p id="userP"></p>
-    <button class="cta hidden" id="outBtn">Sign out</button>
-  </div>
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyB_MAqIa_ruR-rQ7bZotBZGvW07qEfXqpI",
+  authDomain: "tfnbnr.firebaseapp.com",
+  projectId: "tfnbnr",
+  storageBucket: "tfnbnr.firebasestorage.app",
+  messagingSenderId: "485240329901",
+  appId: "1:485240329901:web:58b8fc9711f2d65ff1d824",
+  measurementId: "G-20J8FEY7XG"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-  <!-- 🔓 UNHIDDEN nav + main -->
-  <nav id="nav">
-    <button class="active" data-view="solo">Solo</button>
-    <button data-view="compete">1-v-1</button>
-    <button data-view="leader">Leaders</button>
-    <button data-view="profile">Profile</button>
-  </nav>
+/* =====  DOM HELPERS  ===== */
+const $ = q => document.querySelector(q);
+const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));
 
-  <main id="main">
-    <!-- solo -->
-    <div class="view active" id="solo">
-      <section>
-        <h2>Solo Focus Timer</h2>
-        <label>Course</label><select id="soloCourse"></select>
+/* =====  THEME  ===== */
+$('#darkToggle').addEventListener('change',e=>{
+  document.body.classList.toggle('dark',e.target.checked);
+  storage('dark',e.target.checked);
+});
+if(storage('dark')){document.body.classList.add('dark'); $('#darkToggle').checked=true;}
 
-        <div class="row">
-          <div class="field">
-            <label for="soloMinutes">Minutes</label>
-            <input id="soloMinutes" type="number" min="0" max="999" step="1" value="25" />
-          </div>
-          <div class="field">
-            <label for="soloSeconds">Seconds (0–59)</label>
-            <input id="soloSeconds" type="number" min="0" max="59" step="1" value="0" />
-          </div>
-        </div>
+/* =====  AUTH UI  ===== */
+$('#googleBtn').onclick = () => signInWithPopup(auth,provider).catch(console.error);
+$('#mailBtn').onclick = () => {
+  const email = prompt('Enter your e-mail:');
+  if(!email) return;
+  const action = {url: location.href, handleCodeInApp:true};
+  sendSignInLinkToEmail(auth, email, action).then(()=>{
+    alert('Check your inbox & click the link!');
+    storage('emailForSignIn', email);
+  }).catch(console.error);
+};
+$('#outBtn').onclick = () => signOut(auth);
 
-        <button class="cta" id="startSolo">Start focus</button>
-        <button class="cta" id="resetSolo" style="margin-top:.5rem;background:#6b7280">Reset</button>
-
-        <div class="progress-bar"><div id="soloProgress"></div></div>
-        <p style="text-align:center;margin-top:.5rem;font-size:1.5rem;font-weight:700" id="soloTimer">25:00</p>
-      </section>
-    </div>
-
-    <!-- 1v1 -->
-    <div class="view" id="compete">
-      <section>
-        <h2>Find a live opponent</h2>
-        <label>Course</label><select id="compCourse"></select>
-        <button class="cta" id="findMatch">Find match</button>
-        <div id="matchArea"></div>
-      </section>
-    </div>
-
-    <!-- leaders -->
-    <div class="view" id="leader">
-      <section><h2>Daily Solo Leaders</h2><div id="soloLeader"></div></section>
-      <section><h2>Competitive Wins</h2><div id="compLeader"></div></section>
-    </div>
-
-    <!-- profile -->
-    <div class="view" id="profile">
-      <section>
-        <h2>Your Card</h2>
-        <p><strong id="cardName">—</strong></p>
-        <p>Focus minutes: <b id="cardMin">0</b></p>
-        <p>Wins: <b id="cardWins">0</b></p>
-        <p>Level: <b id="cardLvl">Rookie</b></p>
-        <button class="cta" id="resetProf">Reset my data</button>
-      </section>
-    </div>
-  </main>
-
-  <!-- Your Firebase/Auth file if you use it -->
-  <script type="module" src="tfnbnr.js"></script>
-
-  <!-- Timer logic -->
-  <script type="module">
-  const $ = (s) => document.querySelector(s);
-  const startBtn = $("#startSolo"), resetBtn = $("#resetSolo"),
-        minIn = $("#soloMinutes"), secIn = $("#soloSeconds"),
-        timerTxt = $("#soloTimer"), bar = $("#soloProgress");
-
-  let state="idle", startTime=0, elapsed=0, duration=25*60*1000, raf=null;
-  const clamp=(v,min,max)=>Math.max(min,Math.min(max,Number.isFinite(v)?v:0));
-  const fmt=(ms)=>{const s=Math.max(0,Math.ceil(ms/1000));
-    const m=Math.floor(s/60).toString().padStart(2,"0");
-    const ss=(s%60).toString().padStart(2,"0");return `${m}:${ss}`};
-
-  function readInputs(){
-    const m=clamp(+minIn.value,0,999);
-    let s=clamp(+secIn.value,0,59);
-    if(m===0&&s===0)s=1;
-    minIn.value=m; secIn.value=s;
-    return {m,s};
+/* auto-sign-in if user arrived via e-mail link */
+if(isSignInWithEmailLink(auth, location.href)){
+  const email = storage('emailForSignIn');
+  if(email){
+    signInWithEmailLink(auth, email, location.href).then(()=>history.replaceState(null,null,'/')).catch(console.error);
   }
+}
 
-  function setDuration(){
-    const {m,s}=readInputs();
-    duration=(m*60+s)*1000;
-    timerTxt.textContent=fmt(duration);
-    bar.style.width="0%";
+onAuthStateChanged(auth, user=>{
+  if(user){
+    $('#authSection').style.display='none';
+    $('#nav').classList.remove('hidden');
+    $('#main').classList.remove('hidden');
+    storage('userName', user.displayName||user.email.split('@')[0]);
+    initApp();
+  }else{
+    $('#authSection').style.display='block';
+    $('#nav').classList.add('hidden');
+    $('#main').classList.add('hidden');
   }
+});
 
-  function update(rem){
-    const pct=100-Math.min(100,(rem/duration)*100);
-    bar.style.width=`${pct}%`;
-    timerTxt.textContent=fmt(rem);
-  }
+/* =====  APP LOGIC  ===== */
+const courses = [
+  "MS 6","MS 7","MS 8",
+  "HS Alg 1","HS Geo","HS Alg 2","HS Pre-Calc","HS Calc AB","HS Calc BC","HS Stats",
+  "Hon Geo","Hon Alg 2","Hon Pre-Calc","Hon Calc AB","Hon Calc BC",
+  "AP Calc AB","AP Calc BC","AP Stats","AP Phys 1","AP Phys 2","AP Phys C","AP Chem","AP Bio","AP Enviro","APUSH","AP World","AP Euro","AP Gov","AP Micro","AP Macro","AP CS A","AP CSP",
+  "IB SL Math","IB HL Math","IB SL Phys","IB HL Phys","IB SL Chem","IB HL Chem","IB SL Bio","IB HL Bio",
+  "College 1","College 2","College 3","College 4","Grad"
+];
+[$('#soloCourse'),$('#compCourse')].forEach(sel=> courses.forEach(c=> sel.innerHTML+=`<option>${c}</option>`));
 
-  function tick(){
-    const now=Date.now(), run=now-startTime;
-    const total=elapsed+run, rem=Math.max(0,duration-total);
-    update(rem);
-    if(rem<=0){
-      cancelAnimationFrame(raf); raf=null; state="idle"; elapsed=0;
-      startBtn.textContent="Start focus";
-      minIn.disabled=secIn.disabled=false;
-      bar.style.width="100%"; timerTxt.textContent="00:00";
-      if(navigator.vibrate) navigator.vibrate(200);
-      alert("Focus session complete!");
-      return;
+let soloInterval, soloSecs=25*60, compInterval, myBar=0, rivalBar=0;
+
+/* solo timer */
+$('#startSolo').onclick=()=>{
+  if(soloInterval)return;
+  soloSecs=25*60;
+  $('#startSolo').disabled=true;
+  soloInterval = setInterval(()=>{
+    soloSecs--;
+    const m=String(Math.floor(soloSecs/60)).padStart(2,0), s=String(soloSecs%60).padStart(2,0);
+    $('#soloTimer').textContent=`${m}:${s}`;
+    $('#soloProgress').style.width=`${(1-soloSecs/(25*60))*100}%`;
+    if(soloSecs<=0){ finishSolo(); }
+  },1000);
+};
+function finishSolo(){
+  clearInterval(soloInterval); soloInterval=null;
+  $('#startSolo').disabled=false;
+  award(25);
+  confetti();
+}
+
+/* 1v1 battle */
+$('#findMatch').onclick=()=>{
+  $('#matchArea').innerHTML='<p>Matching…</p>';
+  setTimeout(()=>{
+    $('#matchArea').innerHTML=`
+      <div class="room">
+        <div><p><strong>You</strong></p><div class="progress-bar"><div id="myBar"></div></div></div>
+        <div><p><strong>Anonymous 🔥</strong></p><div class="progress-bar"><div id="rivalBar"></div></div></div>
+      </div>
+      <button class="cta" id="startBattle">Start 10-min battle</button>`;
+    $('#startBattle').onclick=startBattle;
+  },1200);
+};
+function startBattle(){
+  let secs=10*60;
+  myBar=0; rivalBar=0;
+  compInterval=setInterval(()=>{
+    secs--;
+    myBar+=Math.random()*2.2; rivalBar+=Math.random()*2;
+    $('#myBar').style.width=`${Math.min(myBar,100)}%`;
+    $('#rivalBar').style.width=`${Math.min(rivalBar,100)}%`;
+    if(myBar>=100||rivalBar>=100||secs<=0){
+      clearInterval(compInterval);
+      const won=myBar>=rivalBar;
+      alert(won?'You win! +50':'Close! +10');
+      award(won?50:10); storage('wins', (storage('wins')||0)+(won?1:0));
+      $('#matchArea').innerHTML=''; myBar=0; rivalBar=0;
     }
-    raf=requestAnimationFrame(tick);
-  }
+  },1000);
+}
 
-  function start(){
-    if(state==="running")return;
-    if(state==="idle"){setDuration();elapsed=0;bar.style.width="0%";}
-    startTime=Date.now(); state="running";
-    startBtn.textContent="Pause";
-    minIn.disabled=secIn.disabled=true;
-    raf=requestAnimationFrame(tick);
-  }
+/* points & leaders */
+function award(pts){
+  const today=new Date().toISOString().slice(0,10);
+  const board=storage('board')||{};
+  if(!board[today])board[today]={};
+  const name=storage('userName');
+  board[today][name]=(board[today][name]||0)+pts;
+  storage('board',board);
+  storage('totalMin', (storage('totalMin')||0)+pts);
+}
+function renderLeaders(){
+  const today=new Date().toISOString().slice(0,10);
+  const b=storage('board')||{};
+  const arr=Object.entries(b[today]||{}).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  $('#soloLeader').innerHTML= arr.length ? arr.map(([n,p],i)=>`<div class="leader-item">${i+1}. ${n}<span>${p} pts</span></div>`).join('')
+                                        : '<div class="leader-item">No scores yet today.</div>';
+  $('#compLeader').innerHTML= `<div class="leader-item">${storage('userName')} <span>${storage('wins')||0} wins</span></div>`;
+}
 
-  function pause(){
-    if(state!=="running")return;
-    cancelAnimationFrame(raf); raf=null;
-    elapsed+=Date.now()-startTime;
-    state="paused"; startBtn.textContent="Resume";
-  }
+/* nav */
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active'); $(`#${btn.dataset.view}`).classList.add('active');
+    if(btn.dataset.view==='leader') renderLeaders();
+    if(btn.dataset.view==='profile') renderProfile();
+  });
+});
+function renderProfile(){
+  $('#cardName').textContent=storage('userName');
+  $('#cardMin').textContent=storage('totalMin')||0;
+  $('#cardWins').textContent=storage('wins')||0;
+  const lvlNames=['Rookie','Spark','Fire','Blaze','Inferno','Supernova'];
+  const min=storage('totalMin')||0;
+  const lvl=min<60?0:min<180?1:min<480?2:min<1200?3:min<2400?4:5;
+  $('#cardLvl').textContent=lvlNames[lvl];
+}
+$('#resetProf').onclick=()=>{if(confirm('Erase ALL local data?')){localStorage.clear();location.reload();}};
 
-  function reset(){
-    cancelAnimationFrame(raf); raf=null;
-    state="idle"; elapsed=0;
-    minIn.disabled=secIn.disabled=false;
-    setDuration();
-    startBtn.textContent="Start focus";
-    bar.style.width="0%";
-  }
+/* midnight reset */
+if(storage('lastReset')!==new Date().toISOString().slice(0,10)){
+  storage('board',{});
+  storage('lastReset',new Date().toISOString().slice(0,10));
+}
 
-  startBtn.addEventListener("click",()=>(
-    state==="idle"||state==="paused"?start():pause()
-  ));
-  resetBtn.addEventListener("click",reset);
-  minIn.addEventListener("change",setDuration);
-  secIn.addEventListener("change",setDuration);
-  setDuration();
-  </script>
-</body>
-</html>
+/* confetti */
+function confetti(){
+  const canvas=$('#confetti'), ctx=canvas.getContext('2d'), W=innerWidth, H=innerHeight;
+  canvas.width=W; canvas.height=H;
+  const pcs=[], colors=['#f43f5e','#ec4899','#8b5cf6','#3b82f6'];
+  for(let i=0;i<150;i++) pcs.push({x:W*Math.random(),y:H*Math.random(),r:Math.random()*4+2,color:colors[Math.floor(Math.random()*colors.length)],vy:Math.random()*3+2});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pcs.forEach(p=>{p.y+=p.vy; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();});
+    if(pcs[0].y<H+20) requestAnimationFrame(draw); else ctx.clearRect(0,0,W,H);
+  }
+  draw();
+}
+
+function initApp(){
+  renderProfile();
+  renderLeaders();
+}
+
